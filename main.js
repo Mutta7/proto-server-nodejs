@@ -1,38 +1,33 @@
 const routeResponseMap ={
-    "/info": "<h1>Info Page</h1>",
-    "/contact": "<h1>Contact Us</h1><div>Say hello by emailing <a href='mailto: sample@contoso.com'>here</a></div>",
-    "/aboutUs": "<h1>Learn more about us</h1>",
-    "/error": "Sorry, the page you are looking for is not here.",
+    "/": "views/index.html",
+}
+
+const getViewUrl = url => {
+    return `views${url}.html`;
 }
 
 const port=3000,
     http = require("http"),
     httpStatus = require("http-status-codes"),
-    app = http.createServer();
-const getJsonString = obj => {
-    return JSON.stringify(obj,null,2);
-}
+    fs = require("fs");
 
-let defaultResponseMessage = `<h1>This will show on the screen.</h1>`
+http.createServer((req,res) => {
+    let viewUrl = getViewUrl(req.url);
 
-app.on("request", (req,res) =>{
-    if(req.url =="/error"){
-        res.writeHead(404, {
-            "Content-Type": "text/plain"
-        });
-        res.end(routeResponseMap[req.url]);
-    } else if(routeResponseMap[req.url]){
-        res.writeHead(200, {
-            "Content-Type": "text/html"
-        });
-        res.end(routeResponseMap[req.url]);
-    } else {
-        res.writeHead(200, {
-            "Content-Type": "text/html"
-        });
-        res.end(defaultResponseMessage)
-    }
-});
+    fs.readFile(viewUrl, (error, data) => {
+        if(error) {
+            res.writeHead(httpStatus.NOT_FOUND);
+            res.write("<h1>FILE NOT FOUND</h1>")
+        } else {
+            res.writeHead(httpStatus.OK, {
+                "Content-Type": "text/html"
+            });
+            res.write(data);
+        }
+        res.end();
+    });
 
-app.listen(port);
+    
+}).listen(port);
+
 console.log(`The Server has started and is litening on port number: ${port}`);
